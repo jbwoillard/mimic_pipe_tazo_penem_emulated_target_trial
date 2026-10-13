@@ -1,0 +1,142 @@
+# =============================================================================
+# Configuration du pipeline PTZ vs Carbapénèmes - MIMIC-IV
+# =============================================================================
+
+project:
+  name: "PTZ vs Carbapenem AKI - Target Trial Emulation"
+  version: "1.0"
+  seed: 42
+
+paths:
+  mimic_root: "../mimic-iv-3.1"
+  output_root: "output"
+  report_dir: "report"
+
+design:
+  # Fenêtre de grâce pour la vancomycine (heures)
+  vanco_windows_h: [6, 12, 24, 48]
+  vanco_primary_window_h: 48
+
+  # Follow-up principal (jours)
+  followup_days: 7
+
+  # Follow-up secondaires
+  followup_secondary_days: [2, 3, 14, 30]
+
+  # Fenêtre de définition T0 (heures avant la première dose)
+  t0_window_h: 24
+
+  # Troncature des poids IPTW
+  trim_quantile_low: 0.01
+  trim_quantile_high: 0.99
+
+  # Caliper pour matching (SD du log-odds PS)
+  matching_caliper_sd: 0.2
+
+  # Seuil de positivité (PS extrêmes)
+  positivity_low: 0.05
+  positivity_high: 0.95
+
+  # AKI KDIGO créatinine seuils
+  aki_absolute_increase_mgdl: 0.3
+  aki_relative_increase: 1.5
+
+  # Âge minimal d'inclusion
+  age_min: 18
+
+  # Nombre de répétitions bootstrap
+  n_bootstrap: 500
+
+  # Nombre de folds pour cross-fitting
+  n_folds: 5
+
+medications:
+  ptz_patterns:
+    - "piperacillin"
+    - "tazobactam"
+    - "zosyn"
+    - "pip.tazo"
+    - "piptazo"
+    - "pip/tazo"
+
+  carbapenem_patterns:
+    - "meropenem"
+    - "imipenem"
+    - "cilastatin"
+    - "doripenem"
+    - "ertapenem"
+
+  carbapenem_primary_exclude_erta: true
+
+  vanco_patterns:
+    - "vancomycin"
+    - "vanco"
+
+  aminoglycoside_patterns:
+    - "gentamicin"
+    - "tobramycin"
+    - "amikacin"
+
+  other_nephrotoxins:
+    - "amphotericin"
+    - "colistin"
+    - "polymyxin"
+    - "acyclovir"
+    - "tacrolimus"
+    - "cyclosporine"
+    - "furosemide"
+    - "bumetanide"
+    - "torsemide"
+
+  # --- v3 additions (docs/v3_plan.md §1.9, §2.5, §3.7) ---
+  # Other anti-pseudomonal beta-lactams: needed to define a true new-user
+  # cohort (§1.9) and as the ACORN comparator (§3.7, cefepime vs PTZ).
+  cefepime_patterns:
+    - "cefepime"
+  ceftazidime_patterns:
+    - "ceftazidime"
+  aztreonam_patterns:
+    - "aztreonam"
+
+  # ACE inhibitors / ARBs (§2.5)
+  acei_arb_patterns:
+    - "lisinopril"
+    - "enalapril"
+    - "ramipril"
+    - "captopril"
+    - "benazepril"
+    - "fosinopril"
+    - "quinapril"
+    - "trandolapril"
+    - "perindopril"
+    - "losartan"
+    - "valsartan"
+    - "irbesartan"
+    - "olmesartan"
+    - "candesartan"
+    - "telmisartan"
+    - "azilsartan"
+
+  # NSAIDs (§2.5)
+  nsaid_patterns:
+    - "ibuprofen"
+    - "ketorolac"
+    - "naproxen"
+    - "indomethacin"
+    - "diclofenac"
+    - "celecoxib"
+    - "meloxicam"
+    - "piroxicam"
+
+labs:
+  creatinine_patterns:
+    - "creatinine"
+  bun_patterns:
+    - "urea nitrogen"
+    - "bun"
+    - " bun"
+  creatinine_unit_umol_threshold: 20  # Si valeur > 20 dans labevents, probablement µmol/L... mais MIMIC utilise mg/dL
+
+logging:
+  level: "INFO"
+  file: "output/pipeline.log"
